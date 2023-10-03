@@ -1,0 +1,2 @@
+# run:
+dotnet publish DiscordChatExporter.Cli --output DiscordChatExporter.Cli/publish/ --configuration Release --os linux

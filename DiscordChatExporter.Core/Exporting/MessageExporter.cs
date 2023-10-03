@@ -84,10 +84,6 @@ internal partial class MessageExporter
 {
     private static string GetPartitionFilePath(string baseFilePath, int partitionIndex)
     {
-        // First partition, don't change the file name
-        if (partitionIndex <= 0)
-            return baseFilePath;
-
         // Inject partition index into the file name
         var fileNameWithoutExt = Path.GetFileNameWithoutExtension(baseFilePath);
         var fileExt = Path.GetExtension(baseFilePath);

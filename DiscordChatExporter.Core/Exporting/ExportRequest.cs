@@ -102,18 +102,8 @@ public partial class ExportRequest
         // Guild name
         buffer.Append(guild.Name);
 
-        // Parent name
-        if (channel.Parent is not null)
-            buffer.Append(" - ").Append(channel.Parent.Name);
-
         // Channel name and ID
-        buffer
-            .Append(" - ")
-            .Append(channel.Name)
-            .Append(' ')
-            .Append('[')
-            .Append(channel.Id)
-            .Append(']');
+        buffer.Append(" - ").Append(channel.Name);
 
         // Date range
         if (after is not null || before is not null)
