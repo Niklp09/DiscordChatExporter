@@ -23,7 +23,8 @@
 **DiscordChatExporter** is an application that can be used to export message history from any [Discord](https://discord.com) channel to a file.
 It works with direct messages, group messages, and server channels, and supports Discord's dialect of markdown as well as most other rich media features.
 
-> ❔ If you have questions or issues, **please refer to the [docs](.docs)**.
+<!-- Can't use a relative link here due to a bug in markdown parsing -->
+> ❔ If you have questions or issues, **please refer to the [docs](https://github.com/Tyrrrz/DiscordChatExporter/tree/master/.docs)**.
 
 > 💬 If you want to chat, **join my [Discord server](https://discord.gg/2SUWKFnHSm)**.
 
@@ -57,7 +58,7 @@ The following table lists all available download options:
       <td>
         <ul>
           <li>🟢 <b><a href="https://github.com/Tyrrrz/DiscordChatExporter/releases/latest">Stable release</a></b> (<code>DiscordChatExporter.zip</code>)</li>
-          <li>🟠 <a href="https://github.com/Tyrrrz/DiscordChatExporter/actions/workflows/main.yml">CI build</a> (<code>DiscordChatExporter.zip</code>)</li>
+          <li>🟠 <a href="https://github.com/Tyrrrz/DiscordChatExporter/actions/workflows/main.yml">CI build</a> (<code>DiscordChatExporter.Gui.zip</code>)</li>
         </ul>
       </td>
       <td>
@@ -70,8 +71,8 @@ The following table lists all available download options:
       <td><b>CLI</b></td>
       <td>
         <ul>
-          <li>🟢 <b><a href="https://github.com/Tyrrrz/DiscordChatExporter/releases/latest">Stable release</a></b> (<code>DiscordChatExporter.CLI.zip</code></li>
-          <li>🟠 <a href="https://github.com/Tyrrrz/DiscordChatExporter/actions/workflows/main.yml">CI build</a> (<code>DiscordChatExporter.CLI.zip</code>)</li>
+          <li>🟢 <b><a href="https://github.com/Tyrrrz/DiscordChatExporter/releases/latest">Stable release</a></b> (<code>DiscordChatExporter.Cli.zip</code></li>
+          <li>🟠 <a href="https://github.com/Tyrrrz/DiscordChatExporter/actions/workflows/main.yml">CI build</a> (<code>DiscordChatExporter.Cli.zip</code>)</li>
           <li>🐋 <a href="https://hub.docker.com/r/tyrrrz/discordchatexporter">Docker</a> (<code>tyrrrz/discordchatexporter</code>)</li>
           <li>📦 <a href="https://aur.archlinux.org/packages/discord-chat-exporter-cli">AUR</a> (<code>discord-chat-exporter-cli</code>)</li>
           <li>📦 <a href="https://search.nixos.org/packages?query=discordchatexporter-cli">Nix</a> (<code>discordchatexporter-cli</code>)</li>
