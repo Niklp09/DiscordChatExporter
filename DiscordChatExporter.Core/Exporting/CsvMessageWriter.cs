@@ -8,15 +8,10 @@ using DiscordChatExporter.Core.Utils.Extensions;
 
 namespace DiscordChatExporter.Core.Exporting;
 
-internal partial class CsvMessageWriter : MessageWriter
+internal partial class CsvMessageWriter(Stream stream, ExportContext context)
+    : MessageWriter(stream, context)
 {
-    private readonly TextWriter _writer;
-
-    public CsvMessageWriter(Stream stream, ExportContext context)
-        : base(stream, context)
-    {
-        _writer = new StreamWriter(stream);
-    }
+    private readonly TextWriter _writer = new StreamWriter(stream);
 
     private async ValueTask<string> FormatMarkdownAsync(
         string markdown,
@@ -88,7 +83,7 @@ internal partial class CsvMessageWriter : MessageWriter
         await _writer.WriteAsync(',');
 
         // Message timestamp
-        await _writer.WriteAsync(CsvEncode(Context.FormatDate(message.Timestamp)));
+        await _writer.WriteAsync(CsvEncode(Context.FormatDate(message.Timestamp, "o")));
         await _writer.WriteAsync(',');
 
         // Message content

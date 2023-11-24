@@ -4,8 +4,8 @@ using DiscordChatExporter.Gui.Services;
 using DiscordChatExporter.Gui.Utils;
 using DiscordChatExporter.Gui.ViewModels.Components;
 using DiscordChatExporter.Gui.ViewModels.Dialogs;
-using DiscordChatExporter.Gui.ViewModels.Messages;
 using DiscordChatExporter.Gui.ViewModels.Framework;
+using DiscordChatExporter.Gui.ViewModels.Messages;
 using MaterialDesignThemes.Wpf;
 using Stylet;
 
@@ -124,8 +124,8 @@ public class RootViewModel : Screen, IHandle<NotificationMessage>, IDisposable
         {
             Notifications.Enqueue(
                 $"Successfully updated to {App.Name} v{App.VersionString}",
-                "CHANGELOG",
-                () => ProcessEx.StartShellExecute(App.ChangelogUrl)
+                "WHAT'S NEW",
+                () => ProcessEx.StartShellExecute(App.LatestReleaseUrl)
             );
 
             _settingsService.LastAppVersion = App.Version;

@@ -1,6 +1,9 @@
 name: main
 
-on: [push, pull_request]
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
 
 env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
@@ -8,7 +11,7 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
 
 jobs:
-  test:
+  format:
     runs-on: windows-latest
     permissions:
       contents: read
@@ -20,15 +23,36 @@ jobs:
       - name: Install .NET
         uses: actions/setup-dotnet@3447fd6a9f9e57506b15f895c5b76d3b197dc7c2 # 3.2.0
         with:
-          dotnet-version: 7.0.x
+          dotnet-version: 8.0.x
+
+      - name: Verify formatting
+        run: >
+          dotnet build
+          -t:CSharpierFormat
+          --configuration Release
+
+  test:
+    # Tests need access to secrets, so we can't run them against PRs because of limited trust
+    if: ${{ github.event_name != 'pull_request' }}
+    runs-on: windows-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # 4.1.0
+
+      - name: Install .NET
+        uses: actions/setup-dotnet@3447fd6a9f9e57506b15f895c5b76d3b197dc7c2 # 3.2.0
+        with:
+          dotnet-version: 8.0.x
 
       - name: Run tests
-        # Tests need access to secrets, so we can't run them against PRs because of limited trust
-        if: ${{ github.event_name != 'pull_request' }}
         env:
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
         run: >
           dotnet test
+          -p:CSharpier_Bypass=true
           --configuration Release
           --logger "GitHubActions;summary.includePassedTests=true;summary.includeSkippedTests=true"
           --collect:"XPlat Code Coverage"
@@ -44,7 +68,9 @@ jobs:
   pack:
     strategy:
       matrix:
-        app: [DiscordChatExporter.Cli, DiscordChatExporter.Gui]
+        app:
+          - DiscordChatExporter.Cli
+          - DiscordChatExporter.Gui
 
     runs-on: windows-latest
     permissions:
@@ -58,26 +84,60 @@ jobs:
       - name: Install .NET
         uses: actions/setup-dotnet@3447fd6a9f9e57506b15f895c5b76d3b197dc7c2 # 3.2.0
         with:
-          dotnet-version: 7.0.x
+          dotnet-version: 8.0.x
 
       - name: Publish app
         run: >
           dotnet publish ${{ matrix.app }}
-          --output ${{ matrix.app }}/publish/
+          -p:Version=${{ github.ref_type == 'tag' && github.ref_name || '0.0.0' }}
+          -p:CSharpier_Bypass=true
+          --output ${{ matrix.app }}/bin/publish/
           --configuration Release
 
       - name: Upload artifacts
         uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # 3.1.3
         with:
           name: ${{ matrix.app }}
-          path: ${{ matrix.app }}/publish/
+          path: ${{ matrix.app }}/bin/publish/
+          if-no-files-found: error
 
-  deploy:
-    if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
+  release:
+    if: ${{ github.ref_type == 'tag' }}
 
     needs:
+      - format
       - test
       - pack
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          gh release create ${{ github.ref_name }}
+          --repo ${{ github.event.repository.full_name }}
+          --title ${{ github.ref_name }}
+          --generate-notes
+          --verify-tag
+
+  deploy:
+    needs: release
+
+    strategy:
+      matrix:
+        app:
+          - DiscordChatExporter.Cli
+          - DiscordChatExporter.Gui
+        include:
+          - app: DiscordChatExporter.Cli
+            asset: DiscordChatExporter.Cli
+          - app: DiscordChatExporter.Gui
+            # GUI asset isn't suffixed, unlike the CLI asset
+            asset: DiscordChatExporter
 
     runs-on: ubuntu-latest
     permissions:
@@ -85,35 +145,24 @@ jobs:
       contents: write
 
     steps:
-      - name: Download artifacts (CLI)
+      - name: Download artifacts
         uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # 3.0.2
         with:
-          name: DiscordChatExporter.Cli
-          path: DiscordChatExporter.Cli/
+          name: ${{ matrix.app }}
+          path: ${{ matrix.app }}/
 
-      - name: Download artifacts (GUI)
-        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # 3.0.2
-        with:
-          name: DiscordChatExporter.Gui
-          path: DiscordChatExporter.Gui/
+      - name: Create package
+        # Change into the artifacts directory to avoid including the directory itself in the zip archive
+        working-directory: ${{ matrix.app }}/
+        run: zip -r ../${{ matrix.asset }}.zip .
 
-      - name: Create package (CLI)
-        run: zip -r DiscordChatExporter.Cli.zip DiscordChatExporter.Cli/
-
-      - name: Create package (GUI)
-        run: zip -r DiscordChatExporter.Gui.zip DiscordChatExporter.Gui/
-
-      - name: Create release
+      - name: Upload release asset
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: >
-          gh release create "${{ github.ref_name }}"
-          "DiscordChatExporter.Cli.zip"
-          "DiscordChatExporter.Gui.zip#DiscordChatExporter.zip"
-          --repo "${{ github.event.repository.full_name }}"
-          --title "${{ github.ref_name }}"
-          --notes "[Changelog](${{ github.event.repository.html_url }}/blob/${{ github.ref_name }}/Changelog.md)"
-          --verify-tag
+          gh release upload ${{ github.ref_name }}
+          ${{ matrix.asset }}.zip
+          --repo ${{ github.event.repository.full_name }}
 
   notify:
     needs: deploy
@@ -132,6 +181,6 @@ jobs:
           body: |
             {
               "avatar_url": "https://raw.githubusercontent.com/${{ github.event.repository.full_name }}/${{ github.ref_name }}/favicon.png",
-              "content": "**${{ github.event.repository.name }}** v${{ github.ref_name }} has been released!\n🔗 [Download](<${{ github.event.repository.html_url }}/releases/tag/${{ github.ref_name }}>) • [Changelog](<${{ github.event.repository.html_url }}/blob/${{ github.ref_name }}/Changelog.md>)"
+              "content": "**${{ github.event.repository.name }}** v${{ github.ref_name }} has been released!\n[Download](<${{ github.event.repository.html_url }}/releases/tag/${{ github.ref_name }}>)"
             }
           retry-count: 5
