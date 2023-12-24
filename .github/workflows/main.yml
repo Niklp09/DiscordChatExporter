@@ -3,7 +3,13 @@ name: main
 on:
   workflow_dispatch:
   push:
+    branches:
+      - master
+    tags:
+      - "*"
   pull_request:
+    branches:
+      - master
 
 env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
@@ -13,6 +19,8 @@ env:
 jobs:
   format:
     runs-on: windows-latest
+    timeout-minutes: 10
+
     permissions:
       contents: read
 
@@ -34,7 +42,10 @@ jobs:
   test:
     # Tests need access to secrets, so we can't run them against PRs because of limited trust
     if: ${{ github.event_name != 'pull_request' }}
+
     runs-on: windows-latest
+    timeout-minutes: 10
+
     permissions:
       contents: read
 
@@ -73,6 +84,8 @@ jobs:
           - DiscordChatExporter.Gui
 
     runs-on: windows-latest
+    timeout-minutes: 10
+
     permissions:
       actions: write
       contents: read
@@ -89,7 +102,7 @@ jobs:
       - name: Publish app
         run: >
           dotnet publish ${{ matrix.app }}
-          -p:Version=${{ github.ref_type == 'tag' && github.ref_name || '0.0.0' }}
+          -p:Version=${{ github.ref_type == 'tag' && github.ref_name || format('999.9.9-ci-{0}', github.sha) }}
           -p:CSharpier_Bypass=true
           --output ${{ matrix.app }}/bin/publish/
           --configuration Release
@@ -110,6 +123,8 @@ jobs:
       - pack
 
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
     permissions:
       contents: write
 
@@ -140,6 +155,8 @@ jobs:
             asset: DiscordChatExporter
 
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
     permissions:
       actions: read
       contents: write
@@ -167,6 +184,8 @@ jobs:
   notify:
     needs: deploy
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
     permissions:
       contents: read
 
@@ -181,6 +200,6 @@ jobs:
           body: |
             {
               "avatar_url": "https://raw.githubusercontent.com/${{ github.event.repository.full_name }}/${{ github.ref_name }}/favicon.png",
-              "content": "**${{ github.event.repository.name }}** v${{ github.ref_name }} has been released!\n[Download](<${{ github.event.repository.html_url }}/releases/tag/${{ github.ref_name }}>)"
+              "content": "[**${{ github.event.repository.name }}**](<${{ github.event.repository.html_url }}>) v${{ github.ref_name }} has been released!"
             }
           retry-count: 5
