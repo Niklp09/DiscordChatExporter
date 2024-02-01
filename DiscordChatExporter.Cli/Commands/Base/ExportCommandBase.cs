@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,8 +29,8 @@ public abstract class ExportCommandBase : DiscordCommandBase
         "output",
         'o',
         Description = "Output file or directory path. "
-            + "Directory path must end with a slash to avoid ambiguity. "
-            + "If a directory is specified, file names will be generated automatically. "
+            + "If a directory is specified, file names will be generated automatically based on the channel names and export parameters. "
+            + "Directory paths must end with a slash to avoid ambiguity. "
             + "Supports template tokens, see the documentation for more info."
     )]
     public string OutputPath
@@ -118,8 +117,12 @@ public abstract class ExportCommandBase : DiscordCommandBase
     )]
     public string DateFormat { get; init; } = "MM/dd/yyyy h:mm tt";
 
-    [CommandOption("locale", Description = "Locale to use when formatting dates and numbers.")]
-    public string Locale { get; init; } = CultureInfo.CurrentCulture.Name;
+    [CommandOption(
+        "locale",
+        Description = "Locale to use when formatting dates and numbers. "
+            + "If not specified, the default system locale will be used."
+    )]
+    public string? Locale { get; init; }
 
     [CommandOption("utc", Description = "Normalize all timestamps to UTC+0.")]
     public bool IsUtcNormalizationEnabled { get; init; } = false;
@@ -244,11 +247,9 @@ public abstract class ExportCommandBase : DiscordCommandBase
         // Print the result
         using (console.WithForegroundColor(ConsoleColor.White))
         {
-            await console
-                .Output
-                .WriteLineAsync(
-                    $"Successfully exported {channels.Count - errorsByChannel.Count} channel(s)."
-                );
+            await console.Output.WriteLineAsync(
+                $"Successfully exported {channels.Count - errorsByChannel.Count} channel(s)."
+            );
         }
 
         // Print errors
@@ -258,11 +259,9 @@ public abstract class ExportCommandBase : DiscordCommandBase
 
             using (console.WithForegroundColor(ConsoleColor.Red))
             {
-                await console
-                    .Error
-                    .WriteLineAsync(
-                        $"Failed to export {errorsByChannel.Count} the following channel(s):"
-                    );
+                await console.Error.WriteLineAsync(
+                    $"Failed to export {errorsByChannel.Count} the following channel(s):"
+                );
             }
 
             foreach (var (channel, error) in errorsByChannel)
@@ -324,51 +323,33 @@ public abstract class ExportCommandBase : DiscordCommandBase
         // Support Ukraine callout
         if (!IsUkraineSupportMessageDisabled)
         {
-            console
-                .Output
-                .WriteLine(
-                    "┌────────────────────────────────────────────────────────────────────┐"
-                );
-            console
-                .Output
-                .WriteLine(
-                    "│   Thank you for supporting Ukraine <3                              │"
-                );
-            console
-                .Output
-                .WriteLine(
-                    "│                                                                    │"
-                );
-            console
-                .Output
-                .WriteLine(
-                    "│   As Russia wages a genocidal war against my country,              │"
-                );
-            console
-                .Output
-                .WriteLine(
-                    "│   I'm grateful to everyone who continues to                        │"
-                );
-            console
-                .Output
-                .WriteLine(
-                    "│   stand with Ukraine in our fight for freedom.                     │"
-                );
-            console
-                .Output
-                .WriteLine(
-                    "│                                                                    │"
-                );
-            console
-                .Output
-                .WriteLine(
-                    "│   Learn more: https://tyrrrz.me/ukraine                            │"
-                );
-            console
-                .Output
-                .WriteLine(
-                    "└────────────────────────────────────────────────────────────────────┘"
-                );
+            console.Output.WriteLine(
+                "┌────────────────────────────────────────────────────────────────────┐"
+            );
+            console.Output.WriteLine(
+                "│   Thank you for supporting Ukraine <3                              │"
+            );
+            console.Output.WriteLine(
+                "│                                                                    │"
+            );
+            console.Output.WriteLine(
+                "│   As Russia wages a genocidal war against my country,              │"
+            );
+            console.Output.WriteLine(
+                "│   I'm grateful to everyone who continues to                        │"
+            );
+            console.Output.WriteLine(
+                "│   stand with Ukraine in our fight for freedom.                     │"
+            );
+            console.Output.WriteLine(
+                "│                                                                    │"
+            );
+            console.Output.WriteLine(
+                "│   Learn more: https://tyrrrz.me/ukraine                            │"
+            );
+            console.Output.WriteLine(
+                "└────────────────────────────────────────────────────────────────────┘"
+            );
             console.Output.WriteLine("");
         }
 
