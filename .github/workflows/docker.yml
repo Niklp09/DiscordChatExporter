@@ -12,8 +12,7 @@ on:
       - master
 
 jobs:
-  # Outputs from this job aren't really used, but it's here to verify that
-  # the Dockerfile builds correctly on pull requests.
+  # Outputs from this job aren't really used, but it's here to verify that the Dockerfile builds correctly
   pack:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -24,10 +23,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Install Docker Buildx
-        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
+        uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb # v3.3.0
 
       - name: Build image
         run: >
@@ -38,7 +37,7 @@ jobs:
           --output type=tar,dest=DiscordChatExporter.Cli.Docker.tar
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
         with:
           name: DiscordChatExporter.Cli.Docker
           path: DiscordChatExporter.Cli.Docker.tar
@@ -56,10 +55,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
       - name: Install Docker Buildx
-        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
+        uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb # v3.3.0
 
       - name: Login to DockerHub
         run: >
